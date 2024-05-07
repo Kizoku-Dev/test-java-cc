@@ -1,0 +1,20 @@
+{
+    "name": "test-java",
+    "dockerComposeFile": ["docker-compose.yml"],
+    "service" : "test-java-application",
+    "workspaceFolder": "/workspace",
+    "shutdownAction": "stopCompose",
+    "remoteUser": "dev",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vscjava.vscode-java-pack",
+                "ms-azuretools.vscode-docker",
+                "vmware.vscode-boot-dev-pack",
+                "redhat.vscode-xml",
+                "ckolkman.vscode-postgres",
+                "yzhang.markdown-all-in-one"
+            ]
+        }
+    }
+  }

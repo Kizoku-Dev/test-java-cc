@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  test-java-application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VARIANT: 24.04
+    container_name: test-java-application-devcontainer
+    hostname: devcontainer
+    volumes:
+      - ..:/workspace:cached
+      - volume-data-maven:/home/user/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: /bin/sh -c "while sleep 1000; do :; done"
+  postgres:
+    image: postgres:latest
+    environment:
+      - 'POSTGRES_DB=test'
+      - 'POSTGRES_USER=test'
+      - 'POSTGRES_PASSWORD=test123'
+    ports: 
+      - '5432'
+
+volumes:
+  volume-data-maven:
+    external: true
