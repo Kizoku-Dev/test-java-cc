@@ -1,3 +1,5 @@
 package fr.ccomptes.test.interfaces.dto;
 
-public record AccountCreationRequest(String name) {} 
+import jakarta.validation.constraints.NotBlank;
+
+public record AccountCreationRequest(@NotBlank(message = "Nom invalide") String name) {}

@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("select a from Account a where a.name = :name")
-    public Account findByName(@Param("name") String name);
+    Account findByName(@Param("name") String name);
 }

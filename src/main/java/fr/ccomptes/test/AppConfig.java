@@ -21,12 +21,12 @@ public class AppConfig {
   @Bean
   public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
     LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-    em.setDataSource(dataSource());
+    em.setDataSource(this.dataSource());
     em.setPackagesToScan("fr.ccomptes.test.domain");
 
     JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
     em.setJpaVendorAdapter(vendorAdapter);
-    em.setJpaProperties(additionalProperties());
+    em.setJpaProperties(this.additionalProperties());
 
     return em;
   }
@@ -44,7 +44,8 @@ public class AppConfig {
     DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
     dataSource.setDriverClassName("org.postgresql.Driver");
-    dataSource.setUrl("jdbc:postgresql://postgres/test");
+    //dataSource.setUrl("jdbc:postgresql://postgres/test"); // TODO : remove when docker
+    dataSource.setUrl("jdbc:postgresql://localhost:5433/test");
     dataSource.setUsername("test");
     dataSource.setPassword("test123");
     return dataSource;
@@ -53,7 +54,7 @@ public class AppConfig {
   @Bean
   public PlatformTransactionManager transactionManager() {
     JpaTransactionManager transactionManager = new JpaTransactionManager();
-    transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
+    transactionManager.setEntityManagerFactory(this.entityManagerFactory().getObject());
 
     return transactionManager;
   }

@@ -1,3 +1,3 @@
 package fr.ccomptes.test.interfaces.dto;
 
-public record AccountCreationResponse(Long id) {} 
+public record AccountCreationResponse(long id) {}

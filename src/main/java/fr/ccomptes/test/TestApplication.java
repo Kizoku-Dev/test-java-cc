@@ -9,42 +9,54 @@ import fr.ccomptes.test.application.AccountService;
 import fr.ccomptes.test.domain.AccountRepository;
 import fr.ccomptes.test.domain.TransactionRepository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @SpringBootApplication
 public class TestApplication implements CommandLineRunner {
 
-	public static void main(String[] args) {
-		SpringApplication.run(TestApplication.class, args);
-	}
-	@Autowired
-	AccountService accountService;
-	@Autowired
-	AccountRepository accountRepository;
-	@Autowired
-	TransactionRepository transactionRepository;
+  private static final String BANQUE = "banque";
+  private static final String ALICE = "alice";
+  private static final String BOB = "bob";
+  private static final String EVE = "eve";
 
-	@Override
-	public void run(String... args) throws Exception {
-		// Création de comptes
-		String[] names = { "banque", "alice", "bob", "eve" };
-		for (String name : names) {
-			if (accountService.accountExists(name)) {
-				continue;
-			}
-			accountService.createAccount(name);
-		}
-		// Banque créditée de 1 000 000
-		accountService.setBalance("banque", 1_000_000L);
-		// Transactions entre comptes
-		if (transactionRepository.count() == 0) {
-			accountService.addTransaction("banque", "alice", 1000L);
-			accountService.addTransaction("alice", "bob", 10L);
-			accountService.addTransaction("alice", "bob", 30L);
-			accountService.addTransaction("alice", "bob", 50L);
-			accountService.addTransaction("alice", "eve", 100L);
-			accountService.addTransaction("bob", "eve", 25L);
-			accountService.addTransaction("bob", "alice", 40L);
-		}
+  public static void main(String[] args) {
+    SpringApplication.run(TestApplication.class, args);
+  }
 
-	}
+  @Autowired
+  AccountService accountService;
+  @Autowired
+  AccountRepository accountRepository;
+  @Autowired
+  TransactionRepository transactionRepository;
+
+  @Override
+  public void run(final String... args) throws Exception {
+    // Création de comptes
+    String[] names = {BANQUE, ALICE, BOB, EVE};
+    Map<String, Long> accountIdsByNames = new HashMap<>();
+    for (String name : names) {
+      if (this.accountService.accountExists(name)) {
+        Long id = this.accountService.getAccountByName(name).getId();
+        accountIdsByNames.put(name, id);
+      } else {
+        this.accountService.createAccount(name);
+      }
+    }
+    // Banque créditée de 1 000 000
+    this.accountService.setBalance(BANQUE, 1_000_000L);
+    // Transactions entre comptes
+    if (this.transactionRepository.count() == 0) {
+      this.accountService.addTransaction(accountIdsByNames.get(BANQUE), accountIdsByNames.get(ALICE), 1000L);
+      this.accountService.addTransaction(accountIdsByNames.get(ALICE), accountIdsByNames.get(BOB), 10L);
+      this.accountService.addTransaction(accountIdsByNames.get(ALICE), accountIdsByNames.get(BOB), 30L);
+      this.accountService.addTransaction(accountIdsByNames.get(ALICE), accountIdsByNames.get(BOB), 50L);
+      this.accountService.addTransaction(accountIdsByNames.get(ALICE), accountIdsByNames.get(EVE), 100L);
+      this.accountService.addTransaction(accountIdsByNames.get(BOB), accountIdsByNames.get(EVE), 25L);
+      this.accountService.addTransaction(accountIdsByNames.get(BOB), accountIdsByNames.get(ALICE), 40L);
+    }
+
+  }
 
 }
