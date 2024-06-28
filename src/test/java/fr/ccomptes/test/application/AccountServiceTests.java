@@ -1,26 +1,27 @@
 package fr.ccomptes.test.application;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import fr.ccomptes.test.application.exception.AccountException;
+import fr.ccomptes.test.domain.Account;
+import fr.ccomptes.test.domain.AccountRepository;
+import fr.ccomptes.test.domain.Transaction;
+import fr.ccomptes.test.domain.TransactionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import fr.ccomptes.test.domain.Account;
-import fr.ccomptes.test.domain.AccountRepository;
-import fr.ccomptes.test.domain.TransactionRepository;
-
+import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTests {
@@ -110,4 +111,57 @@ class AccountServiceTests {
     assertThrows(IllegalArgumentException.class, () -> this.accountService.createAccount("banque"));
   }
 
+  @Test
+  void whenBanqueTransactionAmountEqualsAccountsBalance_thenVerificationOk() {
+
+    Account banqueAccount = new Account("banque");
+    banqueAccount.setId(1L);
+    banqueAccount.setBalance(1000);
+    Account account1 = new Account("account1");
+    account1.setId(2L);
+    account1.setBalance(50);
+    Account account2 = new Account("account2");
+    account2.setId(3L);
+    account2.setBalance(50);
+
+    Transaction transaction1 = new Transaction();
+    transaction1.setFrom(banqueAccount);
+    transaction1.setTo(account1);
+    transaction1.setAmount(100L);
+
+    List<Transaction> transactions = List.of(transaction1);
+    List<Account> accounts = List.of(banqueAccount, account1, account2);
+    when(this.accountRepository.findByName("banque")).thenReturn(banqueAccount);
+    when(this.accountRepository.findAll()).thenReturn(accounts);
+    when(this.transactionRepository.findAll()).thenReturn(transactions);
+
+    assertTrue(this.accountService.verification());
+  }
+
+  @Test
+  void whenBanqueTransactionAmountNotEqualsAccountsBalance_thenVerificationFails() {
+
+    Account banqueAccount = new Account("banque");
+    banqueAccount.setId(1L);
+    banqueAccount.setBalance(1000);
+    Account account1 = new Account("account1");
+    account1.setId(2L);
+    account1.setBalance(100);
+    Account account2 = new Account("account2");
+    account2.setId(3L);
+    account2.setBalance(50);
+
+    Transaction transaction1 = new Transaction();
+    transaction1.setFrom(banqueAccount);
+    transaction1.setTo(account1);
+    transaction1.setAmount(100L);
+
+    List<Transaction> transactions = List.of(transaction1);
+    List<Account> accounts = List.of(banqueAccount, account1, account2);
+    when(this.accountRepository.findByName("banque")).thenReturn(banqueAccount);
+    when(this.accountRepository.findAll()).thenReturn(accounts);
+    when(this.transactionRepository.findAll()).thenReturn(transactions);
+
+    assertFalse(this.accountService.verification());
+  }
 }

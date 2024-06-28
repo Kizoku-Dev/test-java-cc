@@ -142,6 +142,8 @@ Implémenter le test unitaire dans la méthode `AccountServiceTests.whenInsuffic
 
 La méthode `AccountService.addTransaction` souffre de problèmes transactionnels : lesquels ? Comment les corriger ?
 
+#### La méthode implique plusieurs opérations d'écriture mais n'est pas éxécutée au sein d'une transaction. Chaque opération étant traitée et commit individuellement, on peut se retrouver avec une incohérence des données dans le cas où la 1ère opération fonctionne alors que la 2ème échoue (par exemple). Il suffit alors d'annoter la classe (ou la méthode) avec @Transactionnal pour que toutes les opérations soient éxécutées au sein d'une transaction, elles seront alors traitées en batch dans un journal spécifique et le résulat sera persisté dans la bdd seulement si toutes les opérations réussissent.
+
 Ressource utile à consulter : https://www.postgresql.org/docs/current/transaction-iso.html
 
 ### (code) Sécurité
@@ -158,6 +160,8 @@ Il peut arriver qu'un client passe deux fois la même transaction par erreur.
 > Par exemple, lors d'une perte du réseau entre l'envoi d'une transaction et la réception de l'acquittement du service, le client ne peut pas savoir si sa transaction a bien été passée, et peut être incliné à la refaire. 
 
 Comment se prémunir contre ce type de problème et quels sont les impacts sur les entités du domaine et sur le client ?
+
+#### Une solution simple qui me vient en tête est de générer un token (indempotency key) côté client qui servira à identifier la transaction. L'utilisateur ouvre la page permettant de faire une transaction, un token est alors généré et lorsque l'utilisateur valide sa transaction, le token est envoyé avec le reste du formulaire. En back on conserve une liste des token (en bdd si on veut, ou tout simplement avec une map). Si l'utilisateur renvoie le même formulaire, alors le token sera le même et la requête sera rejetée. Les impacts seront uniquement sur les DTO et non sur les objets domain.
 
 ### (code / architecture) Intégrité
 

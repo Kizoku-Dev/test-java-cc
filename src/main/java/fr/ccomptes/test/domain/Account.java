@@ -9,6 +9,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @Setter
@@ -37,5 +39,25 @@ public class Account {
 
   public Account(final String name) {
     this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || this.getClass() != o.getClass()) {
+      return false;
+    }
+    Account account = (Account) o;
+    return Objects.equals(this.id, account.id) && Objects.equals(
+      this.name,
+      account.name
+    ) && Objects.equals(this.balance, account.balance);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.id, this.name, this.balance); // include all relevant fields
   }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -24,13 +25,19 @@ public class AccountService {
   private TransactionRepository transactionRepository;
 
   /**
-   * Liste des comptes
-   * TODO : filtrer les comptes par un nom donné en paramètre d'URL, insensible à la casse
+   * Liste les comptes
    *
-   * @return
+   * @param name le nom utilisé pour filtrer les comptes, si null retourne tout les comptes
+   * @return List<Account>
    */
-  public List<Account> listAccounts() {
-    return this.accountRepository.findAll();
+  public List<Account> listAccounts(final String name) {
+    List<Account> accounts;
+    if (name == null) {
+      accounts = this.accountRepository.findAll();
+    } else {
+      accounts = this.accountRepository.findByNameContainsIgnoreCase(name);
+    }
+    return accounts;
   }
 
   public boolean accountExists(final String name) {
@@ -151,12 +158,22 @@ public class AccountService {
 
   /**
    * Vérification de l'intégrité des comptes et des transactions
+   * La somme des débit doit être égale à la somme des crédits afin de maintenir une somme totale constante
    *
-   * @return
+   * @return boolean
    */
-  public Boolean verification() {
-    // TODO : implémenter le contrôle d'intégrité des comptes et des transactions
-    // retourner true si tout va bien, false sinon
-    return null;
+  public boolean verification() {
+    Account banqueAccount = this.accountRepository.findByName(BANQUE_ACCOUNT_NAME);
+    List<Account> accounts = this.accountRepository.findAll();
+    List<Transaction> transactions = this.transactionRepository.findAll();
+    long totalCreditFromBanque = transactions.stream()
+      .filter(transaction -> banqueAccount.getId().equals(transaction.getFrom().getId()))
+      .mapToLong(Transaction::getAmount)
+      .sum();
+    long totalMoneyFromAccounts = accounts.stream()
+      .filter(account -> !BANQUE_ACCOUNT_NAME.equals(account.getName()))
+      .mapToLong(Account::getBalance)
+      .sum();
+    return totalCreditFromBanque == totalMoneyFromAccounts;
   }
 }

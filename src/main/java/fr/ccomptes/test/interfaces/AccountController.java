@@ -1,18 +1,5 @@
 package fr.ccomptes.test.interfaces;
 
-import java.util.List;
-
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import fr.ccomptes.test.application.AccountService;
 import fr.ccomptes.test.domain.Account;
 import fr.ccomptes.test.domain.Transaction;
@@ -22,6 +9,17 @@ import fr.ccomptes.test.interfaces.dto.AccountDepositRequest;
 import fr.ccomptes.test.interfaces.dto.AccountDepositResponse;
 import fr.ccomptes.test.interfaces.dto.TransactionRequest;
 import fr.ccomptes.test.interfaces.dto.TransactionResponse;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 
 @RestController
@@ -39,8 +37,8 @@ public class AccountController {
    * @return La liste des comptes
    */
   @GetMapping("/accounts")
-  public List<Account> listAccounts() {
-    return this.accountService.listAccounts();
+  public List<Account> listAccounts(@RequestParam(name = "name", required = false) final String name) {
+    return this.accountService.listAccounts(name);
   }
 
   /**
@@ -115,9 +113,7 @@ public class AccountController {
    * @return
    */
   @GetMapping("/verification")
-  public Boolean verification() {
-    // TODO : implémenter le contrôle d'intégrité des comptes et des transactions
-    // retourner true si tout est en ordre, false sinon
-    return null;
+  public boolean verification() {
+    return this.accountService.verification();
   }
 }
