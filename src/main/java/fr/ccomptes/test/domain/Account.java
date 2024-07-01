@@ -30,8 +30,11 @@ public class Account {
   /**
    * Solde en centimes d'euros
    */
-  @Column()
+  @Column
   private long balance;
+
+  @Column
+  private String apiKey;
 
   public Account() {
 

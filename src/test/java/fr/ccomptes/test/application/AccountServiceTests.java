@@ -32,6 +32,9 @@ class AccountServiceTests {
   @Mock
   TransactionRepository transactionRepository;
 
+  @Mock
+  AuthService authService;
+
   @InjectMocks
   AccountService accountService;
 
@@ -98,6 +101,7 @@ class AccountServiceTests {
   @Test
   void whenAccountNotExist_thenAccountCreationSucceeds() {
 
+    when(this.authService.generateNewToken()).thenReturn("toto");
     this.accountService.createAccount("toto");
     verify(this.accountRepository, times(1)).save(any());
   }

@@ -11,12 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class AccountService {
 
   private static final String BANQUE_ACCOUNT_NAME = "banque";
+
+  @Autowired
+  private AuthService authService;
 
   @Autowired
   private AccountRepository accountRepository;
@@ -60,6 +64,7 @@ public class AccountService {
     }
 
     Account account = new Account(name);
+    account.setApiKey(this.authService.generateNewToken());
     account = this.accountRepository.save(account);
 
     return account;

@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS accounts
 (
     id      int8         NOT NULL,
-    balance int8 NULL,
+    balance int8         NULL,
     "name"  varchar(255) NOT NULL,
+    api_key varchar(32)  NOT NULL,
     CONSTRAINT accounts_pkey PRIMARY KEY (id),
     CONSTRAINT uk_qtv290mh55xhggmpwosf5ag0v UNIQUE (name)
 );

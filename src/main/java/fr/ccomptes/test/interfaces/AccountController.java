@@ -1,12 +1,14 @@
 package fr.ccomptes.test.interfaces;
 
 import fr.ccomptes.test.application.AccountService;
+import fr.ccomptes.test.application.AuthService;
 import fr.ccomptes.test.domain.Account;
 import fr.ccomptes.test.domain.Transaction;
 import fr.ccomptes.test.interfaces.dto.AccountCreationRequest;
 import fr.ccomptes.test.interfaces.dto.AccountCreationResponse;
 import fr.ccomptes.test.interfaces.dto.AccountDepositRequest;
 import fr.ccomptes.test.interfaces.dto.AccountDepositResponse;
+import fr.ccomptes.test.interfaces.dto.AccountListResponse;
 import fr.ccomptes.test.interfaces.dto.TransactionRequest;
 import fr.ccomptes.test.interfaces.dto.TransactionResponse;
 import jakarta.validation.Valid;
@@ -16,20 +18,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.security.auth.login.CredentialException;
 import java.util.List;
 
 
 @RestController
-/**
- * TODO : gestion des exceptions
- */
 public class AccountController {
 
   @Autowired
   private AccountService accountService;
+
+  @Autowired
+  private AuthService authService;
 
   /**
    * Liste les comptes
@@ -37,8 +41,9 @@ public class AccountController {
    * @return La liste des comptes
    */
   @GetMapping("/accounts")
-  public List<Account> listAccounts(@RequestParam(name = "name", required = false) final String name) {
-    return this.accountService.listAccounts(name);
+  public List<AccountListResponse> listAccounts(@RequestParam(name = "name", required = false) final String name) {
+    List<Account> accounts = this.accountService.listAccounts(name);
+    return AccountMapper.accountsToDto(accounts);
   }
 
   /**
@@ -53,15 +58,15 @@ public class AccountController {
 
     Account account = this.accountService.createAccount(name);
 
-    return new AccountCreationResponse(account.getId());
+    return new AccountCreationResponse(account.getId(), account.getApiKey());
   }
 
   /**
    * Dépôt sur un compte donné
    *
-   * @param id                    du compte
+   * @param id du compte sur lequel faire le dépôt
    * @param accountDepositRequest
-   * @return la solde actuel du compte
+   * @return le solde actuel du compte
    */
   @PutMapping("accounts/{id}/deposit")
   public AccountDepositResponse depositAccount(
@@ -74,8 +79,10 @@ public class AccountController {
 
 
   /**
-   * Liste des transactions
+   * Liste les transactions
    *
+   * @param minAmount (optionnel) permet de filter les transactions >= minAmount
+   * @param maxAmount (optionnel) permet de filter les transactions <= maxAmount
    * @return la liste des transactions
    */
   @GetMapping("/transactions")
@@ -86,14 +93,19 @@ public class AccountController {
     return TransactionMapper.transactionsToDto(this.accountService.listTransactions(minAmount, maxAmount));
   }
 
-  @PostMapping("/transactions")
   /**
    * Exécution d'une transaction entre 2 comptes
-   * TODO : sécuriser en controlant une clé d'API liée au compte
+   *
+   * @param apiKey la clé d'api pour s'authentifier
    * @param transactionRequest
-   * @return
+   * @return la transaction effectuée
    */
-  public TransactionResponse addTransaction(@RequestBody final TransactionRequest transactionRequest) {
+  @PostMapping("/transactions")
+  public TransactionResponse addTransaction(
+    @RequestHeader(value = AuthService.AUTH_TOKEN_HEADER_NAME, required = false) final String apiKey,
+    @RequestBody final TransactionRequest transactionRequest) throws CredentialException {
+
+    this.authService.validateAuth(apiKey, transactionRequest.srcId());
     Transaction transaction = this.accountService.addTransaction(
       transactionRequest.srcId(),
       transactionRequest.destId(),
@@ -110,7 +122,7 @@ public class AccountController {
   /**
    * Vérification de l'intégrité des comptes et des transactions
    *
-   * @return
+   * @return true si la vérification est ok, false si non
    */
   @GetMapping("/verification")
   public boolean verification() {
