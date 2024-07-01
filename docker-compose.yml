@@ -1,11 +1,29 @@
-version: '3'
+version: "3"
 
 services:
   postgres:
+    container_name: test-db
     image: postgres:latest
-    environment:
-      - 'POSTGRES_DB=test'
-      - 'POSTGRES_USER=test'
-      - 'POSTGRES_PASSWORD=test123'
-    ports: 
+    ports:
       - '5433:5432'
+    #restart: always
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test123
+    networks:
+      - test-app-network
+  test-api:
+    container_name: test-api
+    #restart: always
+    build:
+      dockerfile: Dockerfile
+    image: test-api:latest
+    ports:
+      - '8080:8080'
+    networks:
+      - test-app-network
+
+networks:
+  test-app-network:
+    driver: bridge
